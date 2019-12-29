@@ -19,25 +19,26 @@ public:
 	resizable_array(size_t chunk_size = 100) : chunk(chunk_size) {}
 	void push_back(const T& x);
 	T& operator[](size_t index) const { return references[index / chunk][index % chunk]; }
-	T& at(size_t index) const { if (index < size) { return (*this)[index]; } else throw; }
-	iterator begin() { return iterator(*this, 0); }
-	iterator end() { return iterator(*this, size); }
+	T& at(size_t index) const { if (index < size_) { return (*this)[index]; } else throw; }
+	iterator begin() const { return iterator(*this, 0); }
+	iterator end() const { return iterator(*this, size_); }
+	size_t size() const {return size_;}
 private:
 	std::vector<std::unique_ptr<T[]>> references;
 	void resize(); // Creates new space for item
 	size_t chunk;
-	size_t size{ 0 };
+	size_t size_{ 0 };
 };
 
 template<typename T> void resizable_array<T>::push_back(const T& x)
 {
 	resize();
-	references[references.size() - 1][size++ % chunk] = x;
+	references[references.size() - 1][size_++ % chunk] = x;
 }
 
 template<typename T> void resizable_array<T>::resize()
 {
-	if (size + 1 > references.size()* chunk)
+	if (size_ + 1 > references.size()* chunk)
 		references.push_back(std::make_unique<T[]>(chunk));
 }
 
