@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <string>
 #include "resizable_array.h"
 
 // Assignments units for literals
@@ -78,22 +79,26 @@ class cnf_formula {
 	public:
 		clause& operator[](size_t index) const { return clauses_[index]; }
 		clause& at(size_t index) const { if (index < clauses_.size()) { return (*this)[index]; } else throw; }
-		class iterator {
+		class clause_iterator {
 		public:
-			iterator(const iterator& it) : f_(it.f_), position_(it.position_) {}
-			iterator(const cnf_formula& f, size_t position) : f_(f), position_(position) {}
+			clause_iterator(const clause_iterator& it) : f_(it.f_), position_(it.position_) {}
+			clause_iterator(const cnf_formula& f, size_t position) : f_(f), position_(position) {}
 			clause& operator*() const { return f_.at(position_); }
-			bool operator!=(const iterator& it) const { return position_ != it.position_; }
-			iterator operator++() { position_++; return *this; }
+			bool operator!=(const clause_iterator& it) const { return position_ != it.position_; }
+			clause_iterator operator++() { position_++; return *this; }
 		private:
 			const cnf_formula& f_;
 			size_t position_{ 0 };
 		};
-
-		iterator begin() const { return iterator(*this, 0); }
-		iterator end() const { return iterator(*this, clauses_.size()); }
+		clause_iterator begin() const { return clause_iterator(*this, 0); }
+		clause_iterator end() const { return clause_iterator(*this, clauses_.size()); }
 		void load_formula(std::istream& input);
 		void print_formula(std::ostream& output) const;
+		size_t count_of_variables() const {return variables_.size();}
+		literal_observer* is_unit_clause(const clause&) const; // if clause is unit, returns unsigned observer, else NULL
+		clause* seek_conflict() const; // check, if there is conflict clause
+		// if clause is conflict, returns true, else NULL
+		bool is_conflict_clause(const clause& c) const;
 	private:
 		bool starts_with(const std::string& str_to_comp, const std::string& prefix) const;
 		clause read_clause(const std::string& line) const;

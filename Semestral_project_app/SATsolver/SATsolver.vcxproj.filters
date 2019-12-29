@@ -21,12 +21,24 @@
     <ClCompile Include="components.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cdcl_algorithm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="graph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="components.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resizable_array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cdcl_algorithm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="graph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

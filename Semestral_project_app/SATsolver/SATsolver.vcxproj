@@ -151,11 +151,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cdcl_algorithm.cpp" />
     <ClCompile Include="components.cpp" />
+    <ClCompile Include="graph.cpp" />
     <ClCompile Include="SATsolver.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cdcl_algorithm.h" />
     <ClInclude Include="components.h" />
+    <ClInclude Include="graph.h" />
     <ClInclude Include="resizable_array.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

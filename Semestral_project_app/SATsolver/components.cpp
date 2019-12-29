@@ -25,6 +25,45 @@ void negative_literal_observer::set_assignment(char assignment) {
 		var_.set_assignment(assignment);
 }
 
+bool cnf_formula::is_conflict_clause(const clause& c) const {
+
+	for (auto l = c.begin(); l != c.end(); ++l)
+	{
+		if ((*l).get_assignment() != 0)
+			return false;
+	}
+
+	return true;
+}
+
+clause* cnf_formula::seek_conflict() const {
+	for (auto c = clauses_.begin(); c != clauses_.end(); ++c)
+	{
+		if (is_conflict_clause(*c))
+			return &*c;
+	}
+	return NULL;
+}
+
+literal_observer* cnf_formula::is_unit_clause(const clause& c) const {
+	literal_observer* result = NULL;
+
+	for (auto l = c.begin(); l != c.end(); ++l) // iterates all literals and seek unsigned literal
+	{
+		if ((*l).get_assignment() == 1)
+			return NULL;
+		if (((*l).get_assignment() != 0))
+		{
+			if (result == NULL)
+				result = &*l;
+			else
+				return NULL;
+		}
+	}
+
+	return result;
+}
+
 void cnf_formula::print_formula(std::ostream& output) const {
 	for (auto c = clauses_.begin(); c != clauses_.end(); ++c)
 	{
