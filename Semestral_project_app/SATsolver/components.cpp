@@ -16,6 +16,17 @@ char negative_literal_observer::get_assignment() const {
 		return var_.get_assignment();
 }
 
+literal_observer* cnf_formula::find_first_unsigned_var() const {
+	for (size_t i = 0; i < observers_.size(); i+=2)
+	{
+		if (observers_[i]->get_assignment() != 0 && observers_[i]->get_assignment() != 1)
+		{
+			return &*observers_[i];
+		}
+	}
+	return NULL;
+}
+
 void negative_literal_observer::set_assignment(char assignment) {
 	if (assignment == 0)
 		var_.set_assignment(1);

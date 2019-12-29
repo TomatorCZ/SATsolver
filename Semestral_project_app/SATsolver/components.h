@@ -92,20 +92,39 @@ class cnf_formula {
 		};
 		clause_iterator begin() const { return clause_iterator(*this, 0); }
 		clause_iterator end() const { return clause_iterator(*this, clauses_.size()); }
+
 		void load_formula(std::istream& input);
+
 		void print_formula(std::ostream& output) const;
+
 		size_t count_of_variables() const {return variables_.size();}
-		literal_observer* is_unit_clause(const clause&) const; // if clause is unit, returns unsigned observer, else NULL
-		clause* seek_conflict() const; // check, if there is conflict clause
+
+		// if clause is unit, returns unsigned observer, else NULL
+		literal_observer* is_unit_clause(const clause&) const;
+
+		// check, if there is conflict clause
+		clause* seek_conflict() const; 
+
 		// if clause is conflict, returns true, else NULL
 		bool is_conflict_clause(const clause& c) const;
+
+		// if no vars is ubsigned, returns NULL
+		literal_observer* find_first_unsigned_var() const;
+
+		const variable& get_variable( int id) const {return  variables_[id-1];}
 	private:
+
 		bool starts_with(const std::string& str_to_comp, const std::string& prefix) const;
 		clause read_clause(const std::string& line) const;
 
 		std::vector<variable> variables_;
-		std::vector<std::shared_ptr<literal_observer>> observers_; // negative are on odd position, positive on even positions
-		resizable_array<clause> clauses_; // resizable_array because iterators, references and pointers are same
+
+		// negative are on odd position, positive on even positions
+		std::vector<std::shared_ptr<literal_observer>> observers_; 
+
+		// resizable_array because iterators, references and pointers are same
+		resizable_array<clause> clauses_; 
+
 		// Constants of dimacs cnf loader
 		const char comment_ = 'c';
 		const std::string paragrapf_ = "p cnf";
