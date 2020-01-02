@@ -78,6 +78,7 @@ class clause {
 		iterator begin() const { return iterator(*this, 0); }
 		iterator end() const { return iterator(*this, literals_.size()); }
 		size_t size() const { return literals_.size(); }
+		void print_clause(std::ostream& output) const;
 		bool constains(const literal_observer& literal) const; 
 		void add_literal(const literal_observer& literal) { literals_.push_back(literal.clone()); }
 	private:

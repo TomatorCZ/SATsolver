@@ -15,9 +15,10 @@ vector<std::pair<int, int>> cdcl_algorithm::get_assignment() const{
 }
 
 bool cdcl_algorithm::make() {
-	cdcl_level l(*this,0,NULL);
+	cdcl_level zero_lvl(*this, 0, formula_.get_observer(1,true));
+	levels.push_back(zero_lvl);
 
-	if (!unit_propagation(l))
+	if (!unit_propagation(zero_lvl))
 		return false;
 
 	while (true)
@@ -36,7 +37,7 @@ bool cdcl_algorithm::make() {
 
 				backtrack(level);
 
-				backtracked = unit_propagation((level == 0) ? l : levels.back());
+				backtracked = unit_propagation( levels.back());
 			}
 		}
 	}
@@ -60,7 +61,7 @@ int cdcl_algorithm::analyze_conflict() {
 	log_ << "Analyzing conflict in lvl " << current_level << endl;
 	if (current_level == 0)
 		return -1;
-	
+
 	clause c = levels.back().find_unsat_clause();
 	while (!levels.back().is_asserting_clause(c))
 	{
@@ -73,7 +74,8 @@ int cdcl_algorithm::analyze_conflict() {
 
 	// add learnt clause
 	formula_.add_clause(c);
-	log_ << "Learnt clause" << endl;
+	log_ << "Learnt clause : ";
+	c.print_clause(log_);
 
 	return sec_highest_level_in_clause(c);
 }
@@ -144,7 +146,7 @@ int cdcl_algorithm::sec_highest_level_in_clause(const clause& c) const
 	{
 		int lvl = variables_placement[(*l).get_variable().get_id() - 1].first;
 		
-		if (lvl > sec_highest && lvl < levels.size())
+		if (lvl > sec_highest && lvl < levels.size() -1)
 		{
 			sec_highest = lvl;
 		}
@@ -158,13 +160,13 @@ void cdcl_algorithm::backtrack(int level) {
 	//current_level = - ((int)levels.size() - level);
 	
 	// delete assignments and level
-	while (level < levels.size())
+	while (level + 1< levels.size())
 	{
 		levels.back().erase_all_assignments();
 		levels.pop_back();		
 	}
 
-	current_level = levels.size();
+	current_level = levels.size() - 1;
 }
 
 void cdcl_algorithm::cdcl_level::erase_all_assignments() {
@@ -180,20 +182,24 @@ bool cdcl_algorithm::make_decision()
 	literal_observer* unsigned_var = formula_.find_first_unsigned_var();
 	if (unsigned_var != NULL)
 	{
-		log_ << "Making decision: in lvl " << levels.size() + 1 << endl;
+		log_ << "Making decision: in lvl " << levels.size() << endl;
 		unsigned_var->set_assignment(1);
-		variables_placement[unsigned_var->get_variable().get_id()-1].first = levels.size() + 1;
+		variables_placement[unsigned_var->get_variable().get_id()-1].first = levels.size();
 		variables_placement[unsigned_var->get_variable().get_id() - 1].second = -1; // -1 means that variable is decision in decision level.
-		levels.emplace_back(*this, levels.size() + 1 , *unsigned_var);// + 1 because decision level starts on 1 by convention.
+		levels.emplace_back(*this, levels.size(), *unsigned_var);// + 1 because decision level starts on 1 by convention.
 		current_level++;
 		return true;
 	}
 	log_ << "Making decision: no vars found " << endl;
+	clause* c = formula_.seek_conflict();
 	return false;
 }
 
 bool cdcl_algorithm::unit_propagation(cdcl_algorithm::cdcl_level& current_level) {
 	log_ << "Unit propagation in decision lvl " << current_level.get_id() << endl;
+
+	//if (current_level.get_id() == 17)
+	//	log_ << "propagation ";
 
 	literal_observer* unit = NULL;
 
@@ -211,18 +217,17 @@ bool cdcl_algorithm::unit_propagation(cdcl_algorithm::cdcl_level& current_level)
 				else
 					unit->get_variable().set_assignment(1);
 				
-				log_ << "Unit propagation: adding variable" << endl;
-				if (levels.size() != 0)
-					current_level.add_literal(*unit, *c); // add variable to current level
-				else
-					variables_placement[(*unit).get_variable().get_id() - 1 ].first = 0;
+				log_ << "Unit propagation: adding variable: " << (*unit).get_variable().get_id() << endl;
+
+				current_level.add_literal(*unit, *c); // add variable to current level
 
 				 //check conflict
 				clause* conflict = formula_.seek_conflict();
 
 				if (conflict != NULL)
 				{
-					log_ << "Unit propagation: conflict detected" << endl;
+					log_ << "Unit propagation: conflict detected: ";
+					conflict->print_clause(log_);
 					if (levels.size() != 0)
 						current_level.add_conflict(*conflict);
 					return false;
@@ -230,6 +235,17 @@ bool cdcl_algorithm::unit_propagation(cdcl_algorithm::cdcl_level& current_level)
 			}
 		}
 	} while (unit != NULL);
+
+	clause* conflict = formula_.seek_conflict();
+
+	if (conflict != NULL)
+	{
+		log_ << "Unit propagation: conflict detected: ";
+		conflict->print_clause(log_);
+		if (levels.size() != 0)
+			current_level.add_conflict(*conflict);
+		return false;
+	}
 
 	return true;
 }
@@ -244,10 +260,10 @@ void cdcl_algorithm::cdcl_level::add_literal(const literal_observer& literal, co
 		{ 
 			int level_of_var = alg_.variables_placement[(*l).get_variable().get_id() - 1].first;
 			int index_in_level = alg_.variables_placement[(*l).get_variable().get_id() - 1].second;
-			if (index_in_level)
-				v.add_edge(alg_.levels[level_of_var - 1].decision_var.second, antecedent);
+			if (index_in_level == -1)
+				v.add_edge(alg_.levels[level_of_var].decision_var.second, antecedent);
 			else
-				v.add_edge(alg_.levels[level_of_var - 1].get_derive_vars()[index_in_level].second, antecedent);
+				v.add_edge(alg_.levels[level_of_var].get_derive_vars()[index_in_level].second, antecedent);
 		}
 	}
 	derive_vars.emplace_back(literal.clone(),v);
@@ -260,9 +276,9 @@ void cdcl_algorithm::cdcl_level::add_conflict(const clause& antecedent) {
 		int level_of_var = alg_.variables_placement[(*l).get_variable().get_id() - 1].first;
 		int index_in_level = alg_.variables_placement[(*l).get_variable().get_id() - 1].second;
 
-		if (index_in_level)
-			conflict_var.add_edge(alg_.levels[level_of_var - 1].decision_var.second, antecedent);
+		if (index_in_level == -1)
+			conflict_var.add_edge(alg_.levels[level_of_var].decision_var.second, antecedent);
 		else
-			conflict_var.add_edge(alg_.levels[level_of_var - 1].get_derive_vars()[index_in_level].second, antecedent);	
+			conflict_var.add_edge(alg_.levels[level_of_var].get_derive_vars()[index_in_level].second, antecedent);	
 	}
 }

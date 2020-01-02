@@ -43,7 +43,7 @@ bool test_cnf(istream& input, bool expected)
 
 int main()
 {
-	string file = "data/test_cnf_14.cnf";
+	string file = "data/aim-100-1_6-no-1.cnf";
 	bool expected = false;
 
 	ifstream f(file);

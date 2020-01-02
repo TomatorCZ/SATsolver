@@ -16,7 +16,7 @@ private:
 	class cdcl_level {
 	public:
 		void erase_all_assignments();
-		cdcl_level(cdcl_algorithm& alg,int id, const literal_observer& decision) : id_(id), decision_var(decision.clone(),&decision), alg_(alg){}
+		cdcl_level(cdcl_algorithm& alg,int id, const literal_observer& decision) : id_(id), decision_var(decision.clone(),decision), alg_(alg){}
 		void add_literal(const literal_observer& literal, const clause& antecedent);
 		int get_id() const { return id_; }
 		void add_conflict(const clause& antecedent);

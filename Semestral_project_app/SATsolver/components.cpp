@@ -8,6 +8,16 @@
 
 using namespace std;
 
+void clause::print_clause(std::ostream& output) const {
+	for (auto l = (*this).begin(); l != (*this).end(); ++l)
+	{
+		if (typeid(*l) == typeid(negative_literal_observer))
+			output << '-';
+		output << (*l).get_variable().get_id() << ' ';
+	}
+	output << '0' << endl;
+}
+
 const literal_observer& cnf_formula::get_observer(int variable_id, bool positive) const {
 	if (positive)
 		return *observers_[(variable_id - 1) * 2];
@@ -94,13 +104,7 @@ literal_observer* cnf_formula::is_unit_clause(const clause& c) const {
 void cnf_formula::print_formula(std::ostream& output) const {
 	for (auto c = clauses_.begin(); c != clauses_.end(); ++c)
 	{
-		for (auto l = (*c).begin(); l != (*c).end(); ++l)
-		{
-			if (typeid(*l) == typeid(negative_literal_observer))
-				output << '-';
-			output << (*l).get_variable().get_id() << ' ';
-		}
-		output << '0' << endl;
+		(*c).print_clause(output);
 	}
 }
 
