@@ -2,6 +2,10 @@
 #include <vector>
 #include <memory>
 
+/**
+ * @brief Provides array, where iterators, pointers and references are same until deletion of object.
+ * 
+ */
 template<typename T> class resizable_array
 {
 public:

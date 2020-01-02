@@ -4,6 +4,10 @@
 
 class vertex;
 
+/**
+ * @brief Edge of implication graph.
+ * 
+ */
 class edge {
 	public:
 		edge(const clause& antecedent, vertex& derived_from) : derived_from_(derived_from), antecedent_(antecedent) {}
@@ -14,6 +18,10 @@ class edge {
 		const clause& antecedent_;
 };
 
+/**
+ * @brief Abstract vertex of implication graph.
+ * 
+ */
 class vertex {
 	public:
 		vertex(const literal_observer& literal) : literal_(literal) {}
@@ -22,11 +30,19 @@ class vertex {
 		const literal_observer& literal_;
 };
 
+/**
+ * @brief Decision vertex of implication graph.
+ * 
+ */
 class decision_vertex: public vertex {
 	public:
 		decision_vertex(const literal_observer& literal):vertex(literal){}
 };
 
+/**
+ * @brief Derive vertex of implication graph.
+ * 
+ */
 class derive_vertex : public vertex {
 	public:
 		derive_vertex(const literal_observer& literal) :vertex(literal) {}
@@ -36,6 +52,10 @@ class derive_vertex : public vertex {
 		std::vector<edge> edges; 
 };
 
+/**
+ * @brief Conflict vertex of implication graph.
+ * 
+ */
 class conflict_vertex {
 	public:
 		void add_edge(vertex& to, const clause& antecedent_);
