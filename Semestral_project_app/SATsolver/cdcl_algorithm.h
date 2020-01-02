@@ -48,6 +48,8 @@ private:
 	//returns level to backtrack
 	int analyze_conflict();
 
+	bool check_conflict_help(cdcl_algorithm::cdcl_level& current_level);
+
 	const variable& get_most_recently_assigned(clause& c) const;
 	int current_level;
 	std::vector<cdcl_level> levels;

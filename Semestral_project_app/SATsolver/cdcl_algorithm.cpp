@@ -7,14 +7,15 @@ using namespace std;
 
 vector<std::pair<int, int>> cdcl_algorithm::get_assignment() const{
 	vector<pair<int, int>> assignment;
+
 	for (size_t i = 1; i <= formula_.count_of_variables(); i++)
-	{
 		assignment.push_back({(int)i,(int)formula_.get_variable(i).get_assignment()});
-	}
+
 	return assignment;
 }
 
 bool cdcl_algorithm::make() {
+
 	cdcl_level zero_lvl(*this, 0, formula_.get_observer(1,true));
 	levels.push_back(zero_lvl);
 
@@ -59,6 +60,7 @@ clause cdcl_algorithm::cdcl_level::find_unsat_clause() const{
 
 int cdcl_algorithm::analyze_conflict() {
 	log_ << "Analyzing conflict in lvl " << current_level << endl;
+
 	if (current_level == 0)
 		return -1;
 
@@ -66,6 +68,7 @@ int cdcl_algorithm::analyze_conflict() {
 	while (!levels.back().is_asserting_clause(c))
 	{
 		log_ << "Analyzing conflict : making resolution" << current_level << endl;
+
 		const variable& v = get_most_recently_assigned(c);
 		int index = variables_placement[v.get_id() - 1].second;
 		const clause& antecedent_of_v = levels.back().get_derive_vars()[index].second.get_antecedent();	
@@ -74,6 +77,7 @@ int cdcl_algorithm::analyze_conflict() {
 
 	// add learnt clause
 	formula_.add_clause(c);
+
 	log_ << "Learnt clause : ";
 	c.print_clause(log_);
 
@@ -147,17 +151,13 @@ int cdcl_algorithm::sec_highest_level_in_clause(const clause& c) const
 		int lvl = variables_placement[(*l).get_variable().get_id() - 1].first;
 		
 		if (lvl > sec_highest && lvl < levels.size() -1)
-		{
 			sec_highest = lvl;
-		}
 	}
 	return sec_highest;
 }
 
 void cdcl_algorithm::backtrack(int level) {
 	log_ << "Backtrack to lvl " << level << endl;
-
-	//current_level = - ((int)levels.size() - level);
 	
 	// delete assignments and level
 	while (level + 1< levels.size())
@@ -179,10 +179,12 @@ void cdcl_algorithm::cdcl_level::erase_all_assignments() {
 bool cdcl_algorithm::make_decision()
 {
 	log_ << "Making decision"<< endl;
+
 	literal_observer* unsigned_var = formula_.find_first_unsigned_var();
 	if (unsigned_var != NULL)
 	{
 		log_ << "Making decision: in lvl " << levels.size() << endl;
+
 		unsigned_var->set_assignment(1);
 		variables_placement[unsigned_var->get_variable().get_id()-1].first = levels.size();
 		variables_placement[unsigned_var->get_variable().get_id() - 1].second = -1; // -1 means that variable is decision in decision level.
@@ -190,16 +192,29 @@ bool cdcl_algorithm::make_decision()
 		current_level++;
 		return true;
 	}
+
 	log_ << "Making decision: no vars found " << endl;
+
 	clause* c = formula_.seek_conflict();
 	return false;
 }
 
+bool cdcl_algorithm::check_conflict_help(cdcl_algorithm::cdcl_level& current_level) {
+	clause* conflict = formula_.seek_conflict();
+
+	if (conflict != NULL)
+	{
+		log_ << "Unit propagation: conflict detected: ";
+		conflict->print_clause(log_);
+		if (levels.size() != 0)
+			current_level.add_conflict(*conflict);
+		return false;
+	}
+	return true;
+}
+
 bool cdcl_algorithm::unit_propagation(cdcl_algorithm::cdcl_level& current_level) {
 	log_ << "Unit propagation in decision lvl " << current_level.get_id() << endl;
-
-	//if (current_level.get_id() == 17)
-	//	log_ << "propagation ";
 
 	literal_observer* unit = NULL;
 
@@ -221,33 +236,14 @@ bool cdcl_algorithm::unit_propagation(cdcl_algorithm::cdcl_level& current_level)
 
 				current_level.add_literal(*unit, *c); // add variable to current level
 
-				 //check conflict
-				clause* conflict = formula_.seek_conflict();
-
-				if (conflict != NULL)
-				{
-					log_ << "Unit propagation: conflict detected: ";
-					conflict->print_clause(log_);
-					if (levels.size() != 0)
-						current_level.add_conflict(*conflict);
+				//check conflict
+				if (!check_conflict_help(current_level))
 					return false;
-				}
 			}
 		}
 	} while (unit != NULL);
 
-	clause* conflict = formula_.seek_conflict();
-
-	if (conflict != NULL)
-	{
-		log_ << "Unit propagation: conflict detected: ";
-		conflict->print_clause(log_);
-		if (levels.size() != 0)
-			current_level.add_conflict(*conflict);
-		return false;
-	}
-
-	return true;
+	return check_conflict_help(current_level);
 }
 
 void cdcl_algorithm::cdcl_level::add_literal(const literal_observer& literal, const clause& antecedent){
@@ -260,6 +256,7 @@ void cdcl_algorithm::cdcl_level::add_literal(const literal_observer& literal, co
 		{ 
 			int level_of_var = alg_.variables_placement[(*l).get_variable().get_id() - 1].first;
 			int index_in_level = alg_.variables_placement[(*l).get_variable().get_id() - 1].second;
+
 			if (index_in_level == -1)
 				v.add_edge(alg_.levels[level_of_var].decision_var.second, antecedent);
 			else
