@@ -3,9 +3,25 @@
 #include <sstream>
 #include <memory>
 #include <typeinfo>
+#include <algorithm>
 #include "components.h"
 
 using namespace std;
+
+const literal_observer& cnf_formula::get_observer(int variable_id, bool positive) const {
+	if (positive)
+		return *observers_[(variable_id - 1) * 2];
+	else
+		return *observers_[(variable_id - 1) * 2 + 1];
+}
+
+bool clause::ftor_is_item::operator()(const shared_ptr<literal_observer>& x){
+	return (*x).get_type() == (literal_).get_type() && x->get_variable().get_id() == literal_.get_variable().get_id();
+}
+
+bool clause::constains(const literal_observer& literal) const{
+	return find_if(literals_.begin(),literals_.end(),ftor_is_item(literal)) != literals_.end();
+}
 
 char negative_literal_observer::get_assignment() const {
 	if (var_.get_assignment() == 0)

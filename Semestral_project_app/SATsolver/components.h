@@ -20,6 +20,11 @@ class variable {
 
 #pragma region Observers
 
+enum lTYPE {
+	positive,
+	negative
+};
+
 // Abstract class of representants of variables(literals)
 class literal_observer {
 	public:
@@ -27,6 +32,7 @@ class literal_observer {
 		variable& get_variable() const { return var_; }
 
 		virtual ~literal_observer() {}
+		virtual lTYPE get_type() const = 0;
 		virtual char get_assignment() const = 0;
 		virtual std::shared_ptr<literal_observer> clone() const = 0;
 		virtual void set_assignment(char assignment) = 0;
@@ -40,6 +46,7 @@ class positive_literal_observer : public literal_observer {
 		char get_assignment() const override { return var_.get_assignment(); }
 		virtual void set_assignment(char assignment) override { var_.set_assignment(assignment); }
 		virtual std::shared_ptr<literal_observer> clone() const override { return std::make_shared<positive_literal_observer>(*this); };
+		virtual lTYPE get_type() const {return lTYPE(positive);};
 };
 
 class negative_literal_observer : public literal_observer {
@@ -48,6 +55,7 @@ class negative_literal_observer : public literal_observer {
 		char get_assignment() const override; // Gets negetion of variable assignment 
 		virtual void set_assignment(char assignment) override;
 		virtual std::shared_ptr<literal_observer> clone() const override { return std::make_shared<negative_literal_observer>(*this); };
+		virtual lTYPE get_type() const { return lTYPE(negative); };
 };
 
 #pragma endregion
@@ -70,8 +78,18 @@ class clause {
 		iterator begin() const { return iterator(*this, 0); }
 		iterator end() const { return iterator(*this, literals_.size()); }
 		size_t size() const { return literals_.size(); }
-		void add_literal(literal_observer& literal) { literals_.push_back(literal.clone()); }
+		bool constains(const literal_observer& literal) const; 
+		void add_literal(const literal_observer& literal) { literals_.push_back(literal.clone()); }
 	private:
+
+		class ftor_is_item {
+		public:
+			ftor_is_item(const literal_observer& literal) :literal_(literal){}
+			bool operator() (const std::shared_ptr<literal_observer>& x);
+		private:
+			const literal_observer& literal_;
+		};
+
 		std::vector<std::shared_ptr<literal_observer>> literals_;
 };
 
@@ -112,6 +130,11 @@ class cnf_formula {
 		literal_observer* find_first_unsigned_var() const;
 
 		const variable& get_variable( int id) const {return  variables_[id-1];}
+
+		// positive == true -> returns positives, else negative
+		const literal_observer& get_observer(int variable_id, bool positive) const ;
+
+		void add_clause(const clause& c) {clauses_.push_back(c) ;}
 	private:
 
 		bool starts_with(const std::string& str_to_comp, const std::string& prefix) const;
