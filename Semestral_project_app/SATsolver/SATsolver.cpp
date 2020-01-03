@@ -2,6 +2,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <vector>
+#include "command_line_controller.h"
 #include "components.h"
 #include "cdcl_algorithm.h"
 
@@ -25,7 +27,7 @@ bool test_cnf(istream& input, bool expected)
 	f.print_formula(cout);
 	
 	std::cout << "logs:" << endl;
-	cdcl_algorithm alg(f,cout);
+	cdcl_algorithm alg(f,cout,true);
 
 	bool result = alg.make();
 
@@ -41,14 +43,18 @@ bool test_cnf(istream& input, bool expected)
 	return result == expected;
 }
 
-int main()
+int main(int argc, char** argv)
 {
-	string file = "data/aim-100-1_6-no-1.cnf";
+	/*string file = "data/aim-100-1_6-no-1.cnf";
 	bool expected = false;
 
 	ifstream f(file);
 
-	test_cnf(f, expected);
+	test_cnf(f, expected);*/
 
-	std::cout << "Hello World!\n";
+	command_line_controller c;
+
+	vector<string> arg(argv, argv + argc);
+
+	c.execute(arg);
 }

@@ -7,7 +7,7 @@
 class cdcl_algorithm
 {
 public:
-	cdcl_algorithm(cnf_formula& formula, std::ostream& log) : formula_(formula), log_(log){
+	cdcl_algorithm(cnf_formula& formula, std::ostream& log, bool able_log) : formula_(formula), log_(log), able_log_(able_log){
 		variables_placement.resize(formula_.count_of_variables());
 	}
 	/**
@@ -110,4 +110,5 @@ private:
 	std::vector<std::pair<int,int>> variables_placement;
 	cnf_formula& formula_;
 	std::ostream& log_;
+	bool able_log_;
 };
